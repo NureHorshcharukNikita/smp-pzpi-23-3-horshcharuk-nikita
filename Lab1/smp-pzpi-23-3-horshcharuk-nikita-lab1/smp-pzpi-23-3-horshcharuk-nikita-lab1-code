@@ -1,0 +1,176 @@
+#!/bin/bash
+
+USER_NAME=$(whoami)
+SCRIPT_NAME="${USER_NAME}-task2"
+
+VERSION="1.0"
+
+# Функція для відображення довідки
+function show_help() {
+    echo "Usage: "
+    echo "  ${SCRIPT_NAME} [--help | --version] | [[-q|--quiet] [академ_група] файл_із_cist.csv]"
+    echo "
+Options:"
+    echo "  --help       Показати цю довідку і завершити роботу"
+    echo "  --version    Вивести версію скрипта і завершити роботу"
+    echo "  -q, --quiet  Не виводити інформацію в стандартний потік виведення"
+}
+
+# Функція для відображення версії
+function show_version() {
+    echo "${SCRIPT_NAME} version ${VERSION}"
+}
+
+# Обробка аргументів командного рядка
+if [[ "$1" == "--help" ]]; then
+    show_help
+    exit 0
+elif [[ "$1" == "--version" ]]; then
+    show_version
+    exit 0
+fi
+
+QUIET=false
+if [[ "$1" == "-q" || "$1" == "--quiet" ]]; then
+    QUIET=true
+    shift
+fi
+
+GROUP_NAME=$1
+CSV_FILE=$2
+
+# Вибір CSV-файлу
+if [ -z "$CSV_FILE" ]; then
+    echo "Виберіть CSV-файл із розкладом:"
+    select CSV_FILE in $(ls TimeTable_??_??_20??.csv 2> /dev/null | sort); do
+        if [[ -n "$CSV_FILE" ]]; then
+            break
+        fi
+    done
+fi
+
+# Перевірка доступності файлу
+if [ ! -f "$CSV_FILE" ] || [ ! -r "$CSV_FILE" ]; then
+    echo "Помилка: Файл '$CSV_FILE' не знайдено або він недоступний" >&2
+    exit 1
+fi
+
+# Конвертація у UTF-8
+TEMP_FILE="Temp_${CSV_FILE}"
+if ! iconv -f WINDOWS-1251 -t UTF-8 "$CSV_FILE" | tr '\r' '\n' | awk 'NR > 1 {print}' | sort -t',' -k1,1 -k2.8,2.11n -k2.5,2.6n -k2.2,2.3n -k3.2,3.3n -k3.5,3.6n > "$TEMP_FILE"; then
+    echo "Помилка: Не вдалось обробити файл '$CSV_FILE'" >&2
+    exit 1
+fi
+
+GROUP_LIST=($(
+    awk -F' ' '$2 ~ /-/ {gsub(/"/, "", $1); print $1}' "$TEMP_FILE" | uniq
+))
+
+# Вибір групи, якщо не задано
+if [ -z "$GROUP_NAME" ]; then
+    if [ "${#GROUP_LIST[@]}" -le 1 ]; then
+        GROUP_NAME="${GROUP_LIST[0]}"
+        echo "Автоматично обрано групу"
+    else
+        echo "Виберіть академічну групу:"
+        select GROUP_NAME in "${GROUP_LIST[@]}"; do
+            if [ -n "$GROUP_NAME" ]; then
+                break
+            fi
+        done
+    fi
+fi
+
+# Перевірка наявності групи у файлі
+if ! grep -q "$GROUP_NAME" "$TEMP_FILE"; then
+    echo "Групу '$GROUP_NAME' не знайдено у файлі '$CSV_FILE'" >&2
+
+    if [ "${#GROUP_LIST[@]}" -le 1 ]; then
+        GROUP_NAME="${GROUP_LIST[0]}"
+        echo "Автоматично обрано групу"
+    else
+        echo "Виберіть академічну групу:"
+        select GROUP_NAME in "${GROUP_LIST[@]}"; do
+            if [ -n "$GROUP_NAME" ]; then
+                break
+            fi
+        done
+    fi
+fi
+
+# Обробка CSV-файлу та форматування
+OUT_FILE="Google_$(echo "$CSV_FILE")"
+AWK_SCRIPT='
+BEGIN {
+    OFS = ",";
+    print "Subject,Start Date,Start Time,End Date,End Time,Description"
+}
+$1 ~ ("^\"" group) {
+    for (i = 1; i <= NF; i++) gsub(/"/, "", $i)
+
+    gsub(group " - ", "", $1)
+
+    split($2, sdate, ".")
+    split($4, edate, ".")
+    startDate = sdate[2] "/" sdate[1] "/" sdate[3]
+    endDate = edate[2] "/" edate[1] "/" edate[3]
+
+    split($3, stime, ":")
+    split($5, etime, ":")
+
+    shour = stime[1] + 0
+    ehour = etime[1] + 0
+
+    sformat = (shour < 12) ? "AM" : "PM"
+    eformat = (ehour < 12) ? "AM" : "PM"
+
+    shour = (shour % 12 == 0) ? 12 : shour % 12
+    ehour = (ehour % 12 == 0) ? 12 : ehour % 12
+
+    startTime = sprintf("%02d:%s %s", shour, stime[2], sformat)
+    endTime = sprintf("%02d:%s %s", ehour, etime[2], eformat)
+
+    split($1, parts, " ")
+    key = parts[1] " " parts[2]
+
+    if ($1 ~ / Лб/) {
+        if (!(key in labtemp)) {
+            labtemp[key] = 1
+            count[key] = 1
+        } else {
+            labtemp[key]++
+            if (labtemp[key] > 2) {
+                labtemp[key] = 1
+                count[key]++
+            }
+        }
+    } else {
+        if (!(key in count)) count[key] = 1
+        else count[key]++
+    }
+
+    subject = "\"" $1 "; №" count[key] "\""
+
+    print subject, startDate, startTime, endDate, endTime, "\"" $12 "\""
+}'
+
+if $QUIET; then
+    OUTPUT=$(awk -F'",' -v group="$GROUP_NAME" "$AWK_SCRIPT" "$TEMP_FILE")
+    STATUS=$?
+    echo "$OUTPUT" > "$OUT_FILE"
+else
+    OUTPUT=$(awk -F'",' -v group="$GROUP_NAME" "$AWK_SCRIPT" "$TEMP_FILE")
+    STATUS=$?
+    echo "$OUTPUT" | tee "$OUT_FILE"
+fi
+
+rm -f "$TEMP_FILE"
+
+if [ "$STATUS" -ne 0 ]; then
+    echo "Помилка: Невдала обробка файла" >&2
+    exit 1
+fi
+
+echo "Готовий файл: $OUT_FILE"
+
+exit 0
