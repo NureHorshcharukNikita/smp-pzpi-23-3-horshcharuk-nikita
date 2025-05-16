@@ -1,0 +1,141 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+}
+
+h1 {
+  text-align: center;
+  font-size: 26px;
+}
+
+a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  margin-top: 20px;
+}
+
+th {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+/* index.php */
+#main-container {
+  width: 80vw;
+  min-height: 90vh;
+  margin: 0 auto;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  padding: 15px;
+  display: flex;
+  flex-direction: column; 
+}
+
+main {
+  flex: 1; 
+}
+
+header, footer {
+  background-color: #f0f0f0;
+  padding: 10px;
+}
+
+.header-nav {
+  display: flex;
+  justify-content: space-around;
+}
+
+.footer-nav {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* products.php */
+.error-message {
+  color: red;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.quantity-input {
+  width: 50px;
+  text-align: center;
+}
+
+.buy-button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.buy-button:hover {
+  background-color: #0056b3;
+}
+
+/* cart.php */
+.remove-btn {
+  color: red;
+  text-decoration: none;
+}
+
+.remove-btn i {
+  font-size: 18px;
+}
+
+.cart-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.clear-all-btn, .pay-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+}
+
+.clear-all-btn {
+  background-color: #dc3545;
+}
+
+.clear-all-btn:hover {
+  background-color: #c82333;
+}
+
+.pay-btn {
+  background-color: #28a745;
+}
+
+.pay-btn:hover {
+  background-color: #218838;
+}
+
+#empty-cart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center
+}
