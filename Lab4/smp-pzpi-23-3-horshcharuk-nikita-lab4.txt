@@ -4,8 +4,7 @@
 
 ЗВІТ
 з лабораторної роботи № 4
-з дисципліни «Архітектура програмного забезпечення»
-на тему: «…»
+з дисципліни «Скриптові мови програмування»
 
 Виконав
 ст. гр. ПЗПІ-23-3
@@ -16,3 +15,555 @@
 Сокорчук Ігор Петрович
 
 Харків 2025
+
+Лабораторна робота №4
+  1 Умови задачі
+  - Розробити веб-додаток PHP, що реалізує інтернет-магазин із авторизацією користувача.
+  - Видалити дублювання коду шапки (header) та підвалу (footer) сайту через інклюди.
+  - Реалізувати сторінку авторизації з перевіркою логіна і пароля, без бази даних.
+  - Обмежити доступ до захищених сторінок для неавторизованих користувачів.
+  - Додати сторінку профілю з редагуванням особистих даних та завантаженням фото.
+  - Зберігати дані профілю у файл (формат PHP).
+  - Фото перевіряти на допустимий формат (jpeg, png, gif).
+  - Показувати повідомлення про помилки у формі, якщо дані невалідні.
+
+  2 Хід роботи
+  - Реалізовано головну сторінку (index.php), що підключає header, footer та вміст обраної сторінки.
+  - Винесено шапку і підвал сайту в окремі файли header.php і footer.php.
+  - Реалізовано маршрутизацію сторінок через параметр "page" в URL.
+  - Додано обмеження на доступ до сторінок сайту (products, cart, profile) лише після авторизації.
+  - Створено сторінку входу login.php з перевіркою логіна і пароля (дані з credential.php).
+  - Створено login_handler.php, що встановлює сесію після успішного входу або показує помилку.
+  - У header.php додано умову: показувати Login або Logout/Profile залежно від авторизації.
+  - Додано сторінку профілю (profile.php) з формою та завантаженням фото.
+  - Реалізовано скрипт profile_handler.php для обробки форми та збереження даних у файл.
+  - Додано перевірку валідності даних профілю (довжина, дата народження, опис >= 50 символів).
+  - Валідація та обробка фото з використанням move_uploaded_file.
+  - Розмітка форм оформлена через CSS, додано превʼю фото та збереження зображення.
+
+  Висновок:
+  - У результаті виконання лабораторної роботи було реалізовано інтернет-магазин із системою авторизації.
+  - Отримано навички розділення структури сайту на компоненти (header, footer).
+  - Реалізовано захист доступу до сторінок для неавторизованих користувачів.
+  - Створено функціонал реєстрації профілю з фото та перевіркою даних.
+  - Реалізоване рішення відповідає вимогам лабораторного завдання.
+  - Забезпечено зручність інтерфейсу та безпеку введення користувацьких даних.
+
+  ДОДАТОК А
+  index.php
+  <?php session_start(); ?>
+  
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Продовольчий магазин весна</title>
+      <link rel="stylesheet" href="assets/css/style.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    </head>
+    <body>
+      <div id="main-container">
+        <?php require_once 'includes/header.php'; ?>
+        <main>
+          <?php
+            $page = $_GET['page'] ?? 'home';
+            $publicPages = ['login'];
+            $contentFile = 'pages/' . $page . '.php';
+  
+            if (!file_exists($contentFile)) {
+              echo '<h1>Сторінку не знайдено!</h1>';
+            }
+            else {
+              if (!isset($_SESSION['user']) && !in_array($page, $publicPages)) {
+                $contentFile = 'pages/page404.php';
+              }
+              
+              include $contentFile;
+            }
+          ?>
+        </main>
+        <?php require_once 'includes/footer.php'; ?>
+      </div>
+    </body>
+  </html>
+
+  Додаток Б
+  Папка pages:
+  1) profile.php
+  <?php
+    $errors = $_SESSION['profile_errors'] ?? [];
+    unset($_SESSION['profile_errors']);
+    $data = file_exists('data/profile_data.php') ? 
+      include 'data/profile_data.php' : 
+      ['name'=>'', 'surname'=>'', 'dob'=>'', 'description'=>'', 'photo'=>''];
+  ?>
+  
+  <div class="profile-page">
+    <h1 class="profile-title">Профіль користувача</h1>
+  
+    <?php if ($errors): ?>
+      <div class="profile-errors">
+        <ul>
+          <?php foreach ($errors as $error): ?>
+            <li><?= htmlspecialchars($error) ?></li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
+    <?php endif; ?>
+  
+    <form method="POST" action="includes/profile_handler.php" enctype="multipart/form-data" class="profile-form">
+      <div class="profile-column">
+        <label class="profile-label">Фото:</label>
+        <img id="photoPreview" src="<?= $data['photo'] ?>" alt="Profile Photo" class="profile-img">
+        <input type="file" id="photoInput" name="photo" class="profile-file"  style="display: none;" onchange="previewPhoto(this)">
+        <button type="button" class="profile-button" onclick="document.getElementById('photoInput').click();">
+          Завантажити
+        </button>
+      </div>
+  
+      <div class="profile-column">
+        <div class="profile-row-group">
+          <div>
+            <label class="profile-label">Ім'я:</label>
+            <input type="text" name="name" value="<?= htmlspecialchars($data['name']) ?>" class="profile-input">
+          </div>
+          <div>
+            <label class="profile-label">Прізвище:</label>
+            <input type="text" name="surname" value="<?= htmlspecialchars($data['surname']) ?>" class="profile-input">
+          </div>
+          <div>
+            <label class="profile-label">Дата народження:</label>
+            <input type="date" name="dob" value="<?= htmlspecialchars($data['dob']) ?>" class="profile-date">
+          </div>
+        </div>
+  
+        <label class="profile-label">Короткий опис:</label>
+        <textarea name="description" rows="8" class="profile-textarea"><?= htmlspecialchars($data['description']) ?></textarea>
+  
+        <br>
+        <button type="submit" class="profile-button">Зберегти</button>
+      </div>
+    </form>
+  </div>
+  
+  <script>
+    let oldBlobURL = null;
+  
+    function previewPhoto(input) {
+      const file = input.files[0];
+      if (!file) return;
+  
+      const img = document.getElementById('photoPreview');
+  
+      if (oldBlobURL) {
+        URL.revokeObjectURL(oldBlobURL);
+      }
+  
+      oldBlobURL = URL.createObjectURL(file);
+      img.src = oldBlobURL;
+    }
+  </script>
+
+  2) products.php
+  <h1>Каталог товарів</h1>
+  
+  <?php
+    require_once 'includes/products.php';
+  
+    $error = $_SESSION['error'] ?? '';
+  
+    unset($_SESSION['error']);
+  ?>
+  
+  <?php if ($error): ?>
+    <div class="error-message">
+      <?= htmlspecialchars($error) ?>
+    </div>
+  <?php endif; ?>
+  
+  <section>
+    <table class="product-table">
+      <thead>
+        <tr>
+          <th>Товар</th>
+          <th>Ціна</th>
+          <th>Кількість</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($products as $product): ?>
+        <tr>
+          <form method="POST" action="includes/actions.php?action=add" class="buy-form">
+            <td><?= htmlspecialchars($product['name']) ?></td>
+            <td><?= $product['price'] ?> грн</td>
+            <td>
+              <input type="hidden" name="addIdInput" value="<?= $product['id'] ?>">
+              <input type="number" name="addCountInput" value="1" class="quantity-input">
+            </td>
+            <td>
+              <input type="submit" value="Купити" class="buy-button">
+            </td>
+          </form>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </section>
+
+  3) page404.php
+  <h1>Please Login first</h1>
+  <div id="warning-page-container">
+    <p>Для перегляду контенту сайту необхідно пройти авторизацію.</p>
+    <a href="index.php?page=login">Перейти до форми входу</a>
+  </div>
+
+  4) login.php
+  <?php
+    $error = $_SESSION['login_error'] ?? '';
+    unset($_SESSION['login_error']);
+  ?>
+  
+  <div id="login-container">
+    <form method="POST" action="includes/login_handler.php" class="login-form">
+      <h1>Вхід</h1>
+  
+      <?php if ($error): ?>
+        <p class="error-message"><?= htmlspecialchars($error) ?></p>
+      <?php endif; ?>
+  
+      <label class="form-label">Ім’я користувача:
+        <input type="text" name="username" class="form-input">
+      </label>
+  
+      <label class="form-label">Пароль:
+        <input type="password" name="password" class="form-input">
+      </label>
+  
+      <button type="submit" class="login-button">Login</button>
+    </form>
+  </div>
+
+  5) home.php
+  <h1>Ласкаво просимо!</h1>
+
+  6) cart.php
+  <?php
+    require_once 'includes/products.php';
+    require_once 'includes/functions.php';
+  ?>
+  
+  <h1>Ваш кошик</h1>
+  
+  <?php if (empty($_SESSION['cart'])): ?>
+    <div id="empty-cart-container">
+      <p>Кошик порожній.</p>
+      <a href="index.php?page=products">Перейти до покупок</a>
+    </div>
+  <?php else: ?>
+    <section>
+      <article>
+        <table class="cart-table">
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Назва</th>
+              <th>Ціна</th>
+              <th>Кількість</th>
+              <th>Сума</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php 
+            $total = 0;
+            foreach ($_SESSION['cart'] as $item): 
+              $product = array_filter($products, fn($p) => $p['id'] == $item['id']);
+              $product = array_shift($product);
+              $sum = $product['price'] * $item['count'];
+              $total += $sum;
+            ?>
+            <tr>
+              <td><?= $product['id'] ?></td>
+              <td><?= htmlspecialchars($product['name']) ?></td>
+              <td><?= number_format($product['price'], 2) ?> грн</td>
+              <td><?= $item['count'] ?></td>
+              <td><?= number_format($sum, 2) ?> грн</td>
+              <td>
+                <a href="includes/actions.php?action=remove&id=<?= $item['id'] ?>" class="remove-btn">
+                  <i class="fas fa-trash"></i>
+                </a>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+            <tr>
+              <td><strong>Всього</strong></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td><strong><?= number_format($total, 2) ?> грн</strong></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <div class="cart-actions">
+          <form method="POST" action="includes/actions.php?action=clearAll">
+            <button type="submit" class="clear-all-btn">Видалити все</button>
+          </form>
+          <button class="pay-btn">Оплатити</button>
+        </div>
+      </article>
+    </section>
+  <?php endif; ?>
+
+  7) about.php
+  <h1>Про нас</h1>
+  <section>
+    <article>
+      <p>Назва: Продовольчий магазин "Весна"</p>
+      <p>ПІБ: Горщарук Н. С.</p>
+      <p>Група: ПЗПІ-23-3</p>
+    </article>
+  </section>
+
+  Додаток В
+  Папка includes:
+  1) profile_handler.php
+  <?php
+  $profileFile = '../data/profile_data.php';
+  
+  $data = ['name'=>'', 'surname'=>'', 'dob'=>'', 'description'=>'', 'photo'=>''];
+  $errors = [];
+  
+  if (file_exists($profileFile)) {
+    $data = include $profileFile;
+  }
+  
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data['name'] = trim($_POST['name']);
+    $data['surname'] = trim($_POST['surname']);
+    $data['dob'] = $_POST['dob'];
+    $data['description'] = trim($_POST['description']);
+  
+    if (strlen($data['name']) < 2) $errors[] = 'Ім\'я занадто коротке.';
+    if (strlen($data['surname']) < 2) $errors[] = 'Прізвище занадто коротке.';
+    if ((date('Y') - date('Y', strtotime($data['dob']))) < 16) $errors[] = 'Має бути не менше 16 років.';
+    if (strlen($data['description']) < 50) $errors[] = 'Опис має бути не менше 50 символів.';
+  
+    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+      $allowed = ['image/jpeg', 'image/png', 'image/gif'];
+      if (in_array($_FILES['photo']['type'], $allowed)) {
+        $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
+        $filename = '/data/uploads/profile_photo.' . $ext;
+        move_uploaded_file($_FILES['photo']['tmp_name'], '..' . $filename);
+        $data['photo'] = $filename;
+      } else {
+        $errors[] = 'Недійсний формат фото.';
+      }
+    }
+  
+    if (empty($errors)) {
+      file_put_contents($profileFile, '<?php return ' . var_export($data, true) . ';');
+      header("Location: /index.php?page=profile");
+      exit;
+    } else {
+      session_start();
+      $_SESSION['profile_errors'] = $errors;
+      header("Location: /index.php?page=profile");
+      exit;
+    }
+  }
+
+  2) products.php
+  <?php
+  $products = [
+      ['id' => 1, "name" => "Молоко пастеризоване", "price" => 12],
+      ['id' => 2, "name" => "Хліб чорний", "price" => 9],
+      ['id' => 3, "name" => "Сир білий", "price" => 21],
+      ['id' => 4, "name" => "Сметана 20%", "price" => 25],
+      ['id' => 5, "name" => "Кефір 1%", "price" => 19],
+      ['id' => 6, "name" => "Вода газована", "price" => 18],
+      ['id' => 7, "name" => "Печиво \"Весна\"", "price" => 14]
+  ];
+
+  3) logout_handler.php
+  <?php
+  session_start();
+  session_unset();
+  session_destroy();
+  header('Location: /index.php?page=login');
+  exit;
+
+  4) login_handler.php
+  <?php
+  if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+  }
+  
+  if (!isset($_POST['username']) || !isset($_POST['password']) || 
+      empty(trim($_POST['username'])) || empty(trim($_POST['password']))) {
+    $_SESSION['login_error'] = 'Будь ласка, заповніть усі поля';
+    header('Location: /index.php?page=login');
+    exit;
+  }
+  
+  $creds = require 'credential.php';
+  
+  if ($_POST['username'] === $creds['userName'] && $_POST['password'] === $creds['password']) {
+    $_SESSION['user'] = $_POST['username'];
+    $_SESSION['login_time'] = time();
+    header('Location: /index.php?page=products');
+    exit;
+  } else {
+    $_SESSION['login_error'] = 'Невірні логін або пароль';
+    header('Location: /index.php?page=login');
+    exit;
+  }
+
+  5) header.php
+  <header>
+    <nav class="header-nav">
+      <a href="index.php?page=home"><i class="fas fa-home"></i> Home</a> |
+      <a href="index.php?page=products"><i class="fas fa-bars"></i> Products</a> |
+      
+      <?php if (!isset($_SESSION['user'])): ?>
+        <a href="index.php?page=login"><i class="fas fa-sign-in-alt"></i> Login</a>
+      <?php else: ?>
+        <a href="index.php?page=cart"><i class="fas fa-shopping-cart"></i> Cart</a> |
+        <a href="index.php?page=profile"><i class="fas fa-user"></i> Profile</a> |
+        <a href="includes/logout_handler.php"><i class="fas fa-sign-out-alt"></i> Logout (<?= htmlspecialchars($_SESSION['user']) ?>)</a>
+      <?php endif; ?>
+    </nav>
+  </header>
+
+  6) functions.php
+  <?php
+  if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+  }
+  
+  function searchCartItem($id) {
+  	if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
+  
+  	foreach ($_SESSION['cart'] as $index => $item) {
+  		if ($item['id'] == $id) {
+  			return $index;
+  		}
+  	}
+  	return -1;
+  }
+  
+  function addCartItem($item) {
+  	$_SESSION['cart'][] = $item;
+  }
+  
+  function incrementCartItemCount($itemNum, $count) {
+  	$_SESSION['cart'][$itemNum]['count'] += $count;
+  }
+
+  7) footer.php
+  <footer>
+    <nav class="footer-nav">
+      <a href="index.php?page=home">Home</a> |
+      <a href="index.php?page=products">Products</a> |
+      <a href="index.php?page=cart">Cart</a> |
+      <a href="index.php?page=about">About Us</a>
+    </nav>
+  </footer>
+
+  8) credential.php
+  <?php
+  return [
+      'userName' => 'Test',
+      'password' => '123123'
+  ];
+
+  9) actions.php
+  <?php
+  require_once 'functions.php';
+  
+  if (isset($_GET['action'])) {
+  	switch ($_GET['action']) {
+  		case 'add':
+  			doAdd();
+  			break;
+  		case 'remove':
+  			doRemove();
+  			break;
+  		case 'clearAll':
+  			doClearAll();
+  			break;
+  	}
+  }
+  
+  function doAdd() {
+  	if (isset($_POST['addIdInput'])) {
+  		$id = (int)$_POST['addIdInput'];
+  
+  		$addCount = isset($_POST['addCountInput']) && (int)$_POST['addCountInput'] > 0
+  			? (int)$_POST['addCountInput']
+  			: 1;
+  
+  		$itemNum = searchCartItem($id);
+  		$currentCount = 0;
+  
+  		if ($itemNum >= 0) {
+  			$currentCount = $_SESSION['cart'][$itemNum]['count'];
+  		}
+  
+  		validateQuantity($id, $addCount, $currentCount);
+  
+  		if ($itemNum < 0) {
+  				$item = ['id' => $id, 'count' => $addCount];
+  				addCartItem($item);
+  		} else {
+  				incrementCartItemCount($itemNum, $addCount);
+  		}
+  	}
+  
+  	header('Location: /index.php?page=cart');
+  	exit;
+  }
+  
+  function doRemove() {
+  	if (isset($_GET['id'])) {
+  		$id = (int)$_GET['id'];
+  		$itemNum = searchCartItem($id);
+  
+  		if ($itemNum >= 0) {
+  			unset($_SESSION['cart'][$itemNum]);
+  			$_SESSION['cart'] = array_values($_SESSION['cart']);
+  		}
+  	}
+  
+  	header('Location: /index.php?page=cart');
+  	exit;
+  }
+  
+  function doClearAll() {
+  	unset($_SESSION['cart']);
+  
+    header('Location: /index.php?page=cart');
+  	exit;
+  }
+  
+  function validateQuantity($id, $addCount, $currentCount) {
+      $newTotalCount = $currentCount + $addCount;
+  
+      $errors = [];
+  
+      if ($addCount < 1) {
+  			$errors[] = "Мінімальна кількість — 1.";
+      }
+  
+      if ($newTotalCount > 99) {
+        $errors[] = "Не можна додати більше 99 одиниць товару (зараз: $currentCount).";
+      }
+  
+      if (!empty($errors)) {
+  			$_SESSION['error'] = implode(' ', $errors);
+  			header('Location: /index.php?page=products');
+  			exit;
+      }
+  }
