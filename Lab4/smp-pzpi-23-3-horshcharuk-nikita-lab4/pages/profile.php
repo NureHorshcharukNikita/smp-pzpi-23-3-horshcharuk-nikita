@@ -1,9 +1,22 @@
 <?php
+  require_once 'database/db.php';
+
   $errors = $_SESSION['profile_errors'] ?? [];
   unset($_SESSION['profile_errors']);
-  $data = file_exists('data/profile_data.php') ? 
-    include 'data/profile_data.php' : 
-    ['name'=>'', 'surname'=>'', 'dob'=>'', 'description'=>'', 'photo'=>''];
+
+  if (!isset($_SESSION['user'])) {
+    exit;
+  }
+
+  $username = $_SESSION['user'];
+
+  $stmt = $pdo->prepare("SELECT name, surname, dob, description, photo FROM Users WHERE username = :username");
+  $stmt->execute([':username' => $username]);
+  $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+  if (!$data) {
+    $data = ['name'=>'', 'surname'=>'', 'dob'=>'', 'description'=>'', 'photo'=>''];
+  }
 ?>
 
 <div class="profile-page">

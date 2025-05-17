@@ -33,10 +33,10 @@ function doAdd() {
 		validateQuantity($id, $addCount, $currentCount);
 
 		if ($itemNum < 0) {
-				$item = ['id' => $id, 'count' => $addCount];
-				addCartItem($item);
+			$item = ['id' => $id, 'count' => $addCount];
+			addCartItem($item);
 		} else {
-				incrementCartItemCount($itemNum, $addCount);
+			incrementCartItemCount($itemNum, $addCount);
 		}
 	}
 
@@ -67,21 +67,21 @@ function doClearAll() {
 }
 
 function validateQuantity($id, $addCount, $currentCount) {
-    $newTotalCount = $currentCount + $addCount;
+	$newTotalCount = $currentCount + $addCount;
 
-    $errors = [];
+	$errors = [];
 
-    if ($addCount < 1) {
-			$errors[] = "Мінімальна кількість — 1.";
-    }
+	if ($addCount < 1) {
+		$errors[] = "Мінімальна кількість — 1.";
+	}
 
-    if ($newTotalCount > 99) {
-      $errors[] = "Не можна додати більше 99 одиниць товару (зараз: $currentCount).";
-    }
+	if ($newTotalCount > 99) {
+		$errors[] = "Не можна додати більше 99 одиниць товару (зараз: $currentCount).";
+	}
 
-    if (!empty($errors)) {
-			$_SESSION['error'] = implode(' ', $errors);
-			header('Location: /index.php?page=products');
-			exit;
-    }
+	if (!empty($errors)) {
+		$_SESSION['error'] = implode(' ', $errors);
+		header('Location: /index.php?page=products');
+		exit;
+	}
 }

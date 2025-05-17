@@ -1,6 +1,13 @@
 <?php
   require_once 'includes/products.php';
   require_once 'includes/functions.php';
+  require_once 'database/db.php';
+
+  $products = [];
+  $stmt = $pdo->query("SELECT id, name, price FROM Products");
+  while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $products[$row['id']] = $row;
+  }
 ?>
 
 <h1>Ваш кошик</h1>
@@ -28,8 +35,8 @@
           <?php 
           $total = 0;
           foreach ($_SESSION['cart'] as $item): 
-            $product = array_filter($products, fn($p) => $p['id'] == $item['id']);
-            $product = array_shift($product);
+            $product = $products[$item['id']] ?? null;
+            if (!$product) continue;
             $sum = $product['price'] * $item['count'];
             $total += $sum;
           ?>

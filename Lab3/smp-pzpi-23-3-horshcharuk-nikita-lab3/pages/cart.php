@@ -28,8 +28,8 @@
           <?php 
           $total = 0;
           foreach ($_SESSION['cart'] as $item): 
-            $product = array_filter($products, fn($p) => $p['id'] == $item['id']);
-            $product = array_shift($product);
+            $product = $products[$item['id']] ?? null;
+            if (!$product) continue;
             $sum = $product['price'] * $item['count'];
             $total += $sum;
           ?>

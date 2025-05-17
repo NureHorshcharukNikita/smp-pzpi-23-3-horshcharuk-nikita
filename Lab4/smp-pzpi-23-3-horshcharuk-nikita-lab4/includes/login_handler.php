@@ -3,17 +3,24 @@ if (session_status() === PHP_SESSION_NONE) {
   session_start();
 }
 
-if (!isset($_POST['username']) || !isset($_POST['password']) || 
+require_once __DIR__ . '/../database/db.php';
+
+if (!isset($_POST['username'], $_POST['password']) ||
     empty(trim($_POST['username'])) || empty(trim($_POST['password']))) {
   $_SESSION['login_error'] = 'Будь ласка, заповніть усі поля';
   header('Location: /index.php?page=login');
   exit;
 }
 
-$creds = require 'credential.php';
+$username = trim($_POST['username']);
+$password = $_POST['password'];
 
-if ($_POST['username'] === $creds['userName'] && $_POST['password'] === $creds['password']) {
-  $_SESSION['user'] = $_POST['username'];
+$stmt = $pdo->prepare("SELECT * FROM Users WHERE username = :username");
+$stmt->execute([':username' => $username]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if ($user && password_verify($password, $user['password'])) {
+  $_SESSION['user'] = $username;
   $_SESSION['login_time'] = time();
   header('Location: /index.php?page=products');
   exit;
