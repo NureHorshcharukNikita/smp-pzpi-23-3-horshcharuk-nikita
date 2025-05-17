@@ -93,11 +93,24 @@
   Папка pages:
   1) profile.php
   <?php
+    require_once 'database/db.php';
+  
     $errors = $_SESSION['profile_errors'] ?? [];
     unset($_SESSION['profile_errors']);
-    $data = file_exists('data/profile_data.php') ? 
-      include 'data/profile_data.php' : 
-      ['name'=>'', 'surname'=>'', 'dob'=>'', 'description'=>'', 'photo'=>''];
+  
+    if (!isset($_SESSION['user'])) {
+      exit;
+    }
+  
+    $username = $_SESSION['user'];
+  
+    $stmt = $pdo->prepare("SELECT name, surname, dob, description, photo FROM Users WHERE username = :username");
+    $stmt->execute([':username' => $username]);
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+  
+    if (!$data) {
+      $data = ['name'=>'', 'surname'=>'', 'dob'=>'', 'description'=>'', 'photo'=>''];
+    }
   ?>
   
   <div class="profile-page">
@@ -253,6 +266,13 @@
   <?php
     require_once 'includes/products.php';
     require_once 'includes/functions.php';
+    require_once 'database/db.php';
+  
+    $products = [];
+    $stmt = $pdo->query("SELECT id, name, price FROM Products");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+      $products[$row['id']] = $row;
+    }
   ?>
   
   <h1>Ваш кошик</h1>
@@ -280,8 +300,8 @@
             <?php 
             $total = 0;
             foreach ($_SESSION['cart'] as $item): 
-              $product = array_filter($products, fn($p) => $p['id'] == $item['id']);
-              $product = array_shift($product);
+              $product = $products[$item['id']] ?? null;
+              if (!$product) continue;
               $sum = $product['price'] * $item['count'];
               $total += $sum;
             ?>
@@ -333,44 +353,71 @@
   Папка includes:
   1) profile_handler.php
   <?php
-  $profileFile = '../data/profile_data.php';
+  session_start();
+  require_once __DIR__ . '/../database/db.php';
   
-  $data = ['name'=>'', 'surname'=>'', 'dob'=>'', 'description'=>'', 'photo'=>''];
-  $errors = [];
-  
-  if (file_exists($profileFile)) {
-    $data = include $profileFile;
+  if (!isset($_SESSION['user'])) {
+    exit;
   }
   
-  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data['name'] = trim($_POST['name']);
-    $data['surname'] = trim($_POST['surname']);
-    $data['dob'] = $_POST['dob'];
-    $data['description'] = trim($_POST['description']);
+  $username = $_SESSION['user'];
   
-    if (strlen($data['name']) < 2) $errors[] = 'Ім\'я занадто коротке.';
-    if (strlen($data['surname']) < 2) $errors[] = 'Прізвище занадто коротке.';
-    if ((date('Y') - date('Y', strtotime($data['dob']))) < 16) $errors[] = 'Має бути не менше 16 років.';
-    if (strlen($data['description']) < 50) $errors[] = 'Опис має бути не менше 50 символів.';
+  $stmt = $pdo->prepare("SELECT * FROM Users WHERE username = :username");
+  $stmt->execute([':username' => $username]);
+  $user = $stmt->fetch(PDO::FETCH_ASSOC);
+  
+  if (!$user) {
+    die('Користувач не знайдений.');
+  }
+  
+  $errors = [];
+  
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name']);
+    $surname = trim($_POST['surname']);
+    $dob = $_POST['dob'];
+    $description = trim($_POST['description']);
+    $photo = $user['photo'];
+  
+    if (strlen($name) < 2) $errors[] = 'Ім\'я занадто коротке.';
+    if (strlen($surname) < 2) $errors[] = 'Прізвище занадто коротке.';
+    if ((date('Y') - date('Y', strtotime($dob))) < 16) $errors[] = 'Має бути не менше 16 років.';
+    if (strlen($description) < 50) $errors[] = 'Опис має бути не менше 50 символів.';
   
     if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
       $allowed = ['image/jpeg', 'image/png', 'image/gif'];
       if (in_array($_FILES['photo']['type'], $allowed)) {
         $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
-        $filename = '/data/uploads/profile_photo.' . $ext;
-        move_uploaded_file($_FILES['photo']['tmp_name'], '..' . $filename);
-        $data['photo'] = $filename;
+        $filename = '/data/uploads/profile_photo_' . $user['id'] . '.' . $ext;
+        move_uploaded_file($_FILES['photo']['tmp_name'], __DIR__ . '/..' . $filename);
+        $photo = $filename;
       } else {
         $errors[] = 'Недійсний формат фото.';
       }
     }
   
     if (empty($errors)) {
-      file_put_contents($profileFile, '<?php return ' . var_export($data, true) . ';');
+      $stmt = $pdo->prepare("
+        UPDATE Users SET
+          name = :name,
+          surname = :surname,
+          dob = :dob,
+          description = :description,
+          photo = :photo
+        WHERE username = :username
+      ");
+      $stmt->execute([
+        ':name' => $name,
+        ':surname' => $surname,
+        ':dob' => $dob,
+        ':description' => $description,
+        ':photo' => $photo,
+        ':username' => $username
+      ]);
+  
       header("Location: /index.php?page=profile");
       exit;
     } else {
-      session_start();
       $_SESSION['profile_errors'] = $errors;
       header("Location: /index.php?page=profile");
       exit;
@@ -379,15 +426,13 @@
 
   2) products.php
   <?php
-  $products = [
-      ['id' => 1, "name" => "Молоко пастеризоване", "price" => 12],
-      ['id' => 2, "name" => "Хліб чорний", "price" => 9],
-      ['id' => 3, "name" => "Сир білий", "price" => 21],
-      ['id' => 4, "name" => "Сметана 20%", "price" => 25],
-      ['id' => 5, "name" => "Кефір 1%", "price" => 19],
-      ['id' => 6, "name" => "Вода газована", "price" => 18],
-      ['id' => 7, "name" => "Печиво \"Весна\"", "price" => 14]
-  ];
+  require_once 'database/db.php';
+  
+  $products = [];
+  $stmt = $pdo->query("SELECT id, name, price FROM Products");
+  while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $products[$row['id']] = $row;
+  }
 
   3) logout_handler.php
   <?php
@@ -403,17 +448,24 @@
     session_start();
   }
   
-  if (!isset($_POST['username']) || !isset($_POST['password']) || 
+  require_once __DIR__ . '/../database/db.php';
+  
+  if (!isset($_POST['username'], $_POST['password']) ||
       empty(trim($_POST['username'])) || empty(trim($_POST['password']))) {
     $_SESSION['login_error'] = 'Будь ласка, заповніть усі поля';
     header('Location: /index.php?page=login');
     exit;
   }
   
-  $creds = require 'credential.php';
+  $username = trim($_POST['username']);
+  $password = $_POST['password'];
   
-  if ($_POST['username'] === $creds['userName'] && $_POST['password'] === $creds['password']) {
-    $_SESSION['user'] = $_POST['username'];
+  $stmt = $pdo->prepare("SELECT * FROM Users WHERE username = :username");
+  $stmt->execute([':username' => $username]);
+  $user = $stmt->fetch(PDO::FETCH_ASSOC);
+  
+  if ($user && password_verify($password, $user['password'])) {
+    $_SESSION['user'] = $username;
     $_SESSION['login_time'] = time();
     header('Location: /index.php?page=products');
     exit;
@@ -474,14 +526,7 @@
     </nav>
   </footer>
 
-  8) credential.php
-  <?php
-  return [
-      'userName' => 'Test',
-      'password' => '123123'
-  ];
-
-  9) actions.php
+  8) actions.php
   <?php
   require_once 'functions.php';
   
@@ -517,10 +562,10 @@
   		validateQuantity($id, $addCount, $currentCount);
   
   		if ($itemNum < 0) {
-  				$item = ['id' => $id, 'count' => $addCount];
-  				addCartItem($item);
+  			$item = ['id' => $id, 'count' => $addCount];
+  			addCartItem($item);
   		} else {
-  				incrementCartItemCount($itemNum, $addCount);
+  			incrementCartItemCount($itemNum, $addCount);
   		}
   	}
   
@@ -551,21 +596,100 @@
   }
   
   function validateQuantity($id, $addCount, $currentCount) {
-      $newTotalCount = $currentCount + $addCount;
+  	$newTotalCount = $currentCount + $addCount;
   
-      $errors = [];
+  	$errors = [];
   
-      if ($addCount < 1) {
-  			$errors[] = "Мінімальна кількість — 1.";
+  	if ($addCount < 1) {
+  		$errors[] = "Мінімальна кількість — 1.";
+  	}
+  
+  	if ($newTotalCount > 99) {
+  		$errors[] = "Не можна додати більше 99 одиниць товару (зараз: $currentCount).";
+  	}
+  
+  	if (!empty($errors)) {
+  		$_SESSION['error'] = implode(' ', $errors);
+  		header('Location: /index.php?page=products');
+  		exit;
+  	}
+  }
+
+  Додаток Г
+  Папка database:
+  db.php
+  <?php
+  $dbFile = __DIR__ . '/../data/shop.sqlite';
+  
+  $dataDir = dirname($dbFile);
+  if (!is_dir($dataDir)) {
+    mkdir($dataDir, 0777, true);
+  }
+  
+  $uploadsDir = $dataDir . '/uploads';
+  if (!is_dir($uploadsDir)) {
+    mkdir($uploadsDir, 0777, true);
+  }
+  
+  $initDb = !file_exists($dbFile);
+  
+  try {
+    $pdo = new PDO("sqlite:$dbFile");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+  
+    if ($initDb) {
+      $pdo->exec("
+        CREATE TABLE IF NOT EXISTS Products (
+          id INTEGER PRIMARY KEY,
+          name TEXT NOT NULL,
+          price REAL NOT NULL CHECK(price >= 0)
+        );
+        
+        CREATE TABLE IF NOT EXISTS Users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT,
+          surname TEXT,
+          dob TEXT,
+          description TEXT,
+          photo TEXT,
+          username TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL
+        );
+      ");
+  
+      $products = [
+        ['id' => 1, "name" => "Молоко пастеризоване", "price" => 12],
+        ['id' => 2, "name" => "Хліб чорний", "price" => 9],
+        ['id' => 3, "name" => "Сир білий", "price" => 21],
+        ['id' => 4, "name" => "Сметана 20%", "price" => 25],
+        ['id' => 5, "name" => "Кефір 1%", "price" => 19],
+        ['id' => 6, "name" => "Вода газована", "price" => 18],
+        ['id' => 7, "name" => "Печиво \"Весна\"", "price" => 14]
+      ];
+  
+      $stmt = $pdo->prepare("INSERT OR IGNORE INTO Products (id, name, price) VALUES (:id, :name, :price)");
+      foreach ($products as $p) {
+        $stmt->execute([
+          ':id' => $p['id'],
+          ':name' => $p['name'],
+          ':price' => $p['price']
+        ]);
       }
   
-      if ($newTotalCount > 99) {
-        $errors[] = "Не можна додати більше 99 одиниць товару (зараз: $currentCount).";
-      }
+      $pdo->prepare("
+        INSERT INTO Users (name, surname, dob, description, photo, username, password)
+        VALUES (:name, :surname, :dob, :description, :photo, :username, :password)
+      ")->execute([
+        ':name' => '',
+        ':surname' => '',
+        ':dob' => '',
+        ':description' => '',
+        ':photo' => '',
+        ':username' => 'Test',
+        ':password' => password_hash('123123', PASSWORD_DEFAULT)
+      ]);
+    }
   
-      if (!empty($errors)) {
-  			$_SESSION['error'] = implode(' ', $errors);
-  			header('Location: /index.php?page=products');
-  			exit;
-      }
+  } catch (PDOException $e) {
+    die("Помилка підключення: " . $e->getMessage());
   }
