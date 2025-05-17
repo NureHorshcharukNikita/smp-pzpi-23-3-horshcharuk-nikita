@@ -347,7 +347,6 @@
   	$_SESSION['cart'][$itemNum]['count'] += $count;
   }
 
-
   3) products.php
   <?php
   require_once 'database/db.php';
