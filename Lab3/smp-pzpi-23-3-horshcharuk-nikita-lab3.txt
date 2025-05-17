@@ -55,7 +55,48 @@
 
   ДОДАТОК А
   index.php
+  <?php session_start(); ?>
   
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Продовольчий магазин весна</title>
+      <link rel="stylesheet" href="assets/css/style.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    </head>
+    <body>
+      <div id="main-container">
+        <header>
+          <nav class="header-nav">
+            <a href="index.php?page=home"><i class="fas fa-home"></i> Home</a> |
+            <a href="index.php?page=products"><i class="fas fa-bars"></i> Products</a> |
+            <a href="index.php?page=cart"><i class="fas fa-shopping-cart"></i> Cart</a>
+          </nav>
+        </header>
+        <main>
+          <?php
+            $page = $_GET['page'] ?? 'home';
+            $contentFile = 'pages/' . $page . '.php';
+  
+            if (file_exists($contentFile)) {
+              include $contentFile;
+            } else {
+              echo '<h1>404 - Сторінку не знайдено</h1>';
+            }
+          ?>
+        </main>
+        <footer>
+          <nav class="footer-nav">
+            <a href="index.php?page=home">Home</a> |
+            <a href="index.php?page=products">Products</a> |
+            <a href="index.php?page=cart">Cart</a> |
+            <a href="index.php?page=about">About Us</a>
+          </nav>
+        </footer>
+      </div>
+    </body>
+  </html>
 
   ДОДАТОК Б
   Папка pages:
@@ -108,8 +149,8 @@
 
   2) cart.php
   <?php
-    require_once 'includes/products.php';
-    require_once 'includes/functions.php';
+  require_once 'includes/products.php';
+  require_once 'includes/functions.php';
   ?>
   
   <h1>Ваш кошик</h1>
@@ -137,8 +178,8 @@
             <?php 
             $total = 0;
             foreach ($_SESSION['cart'] as $item): 
-              $product = array_filter($products, fn($p) => $p['id'] == $item['id']);
-              $product = array_shift($product);
+              $product = $products[$item['id']] ?? null;
+              if (!$product) continue;
               $sum = $product['price'] * $item['count'];
               $total += $sum;
             ?>
@@ -306,14 +347,63 @@
   	$_SESSION['cart'][$itemNum]['count'] += $count;
   }
 
+
   3) products.php
   <?php
-  $products = [
-      ['id' => 1, "name" => "Молоко пастеризоване", "price" => 12],
-      ['id' => 2, "name" => "Хліб чорний", "price" => 9],
-      ['id' => 3, "name" => "Сир білий", "price" => 21],
-      ['id' => 4, "name" => "Сметана 20%", "price" => 25],
-      ['id' => 5, "name" => "Кефір 1%", "price" => 19],
-      ['id' => 6, "name" => "Вода газована", "price" => 18],
-      ['id' => 7, "name" => "Печиво \"Весна\"", "price" => 14]
-  ];
+  require_once 'database/db.php';
+  
+  $products = [];
+  $stmt = $pdo->query("SELECT id, name, price FROM Products");
+  while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $products[$row['id']] = $row;
+  }
+
+  Додаток Г
+  Папка database:
+  db.php
+  <?php
+  $dbFile = __DIR__ . '/../data/shop.sqlite';
+  
+  $dataDir = dirname($dbFile);
+  if (!is_dir($dataDir)) {
+    mkdir($dataDir, 0777, true);
+  }
+  
+  $initDb = !file_exists($dbFile);
+  
+  try {
+    $pdo = new PDO("sqlite:$dbFile");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+  
+    if ($initDb) {
+      $pdo->exec("
+        CREATE TABLE IF NOT EXISTS Products (
+          id INTEGER PRIMARY KEY,
+          name TEXT NOT NULL,
+          price REAL NOT NULL CHECK(price >= 0)
+        );
+      ");
+  
+      $products = [
+        ['id' => 1, "name" => "Молоко пастеризоване", "price" => 12],
+        ['id' => 2, "name" => "Хліб чорний", "price" => 9],
+        ['id' => 3, "name" => "Сир білий", "price" => 21],
+        ['id' => 4, "name" => "Сметана 20%", "price" => 25],
+        ['id' => 5, "name" => "Кефір 1%", "price" => 19],
+        ['id' => 6, "name" => "Вода газована", "price" => 18],
+        ['id' => 7, "name" => "Печиво \"Весна\"", "price" => 14]
+      ];
+  
+      $stmt = $pdo->prepare("INSERT INTO Products (id, name, price) VALUES (:id, :name, :price)");
+  
+      foreach ($products as $product) {
+        $stmt->execute([
+          ':id' => $product['id'],
+          ':name' => $product['name'],
+          ':price' => $product['price']
+        ]);
+      }
+    }
+  } catch (PDOException $e) {
+    die("Помилка підключення: " . $e->getMessage());
+  }
