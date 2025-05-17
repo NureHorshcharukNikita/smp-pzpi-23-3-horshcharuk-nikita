@@ -1,6 +1,16 @@
 <?php
 $dbFile = __DIR__ . '/../data/shop.sqlite';
 
+$dataDir = dirname($dbFile);
+if (!is_dir($dataDir)) {
+  mkdir($dataDir, 0777, true);
+}
+
+$uploadsDir = $dataDir . '/uploads';
+if (!is_dir($uploadsDir)) {
+  mkdir($uploadsDir, 0777, true);
+}
+
 $initDb = !file_exists($dbFile);
 
 try {
