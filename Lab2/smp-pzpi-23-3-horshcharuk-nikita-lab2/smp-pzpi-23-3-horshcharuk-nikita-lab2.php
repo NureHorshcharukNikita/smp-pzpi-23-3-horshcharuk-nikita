@@ -22,7 +22,7 @@
                 else if ($pad_type === STR_PAD_LEFT) {
                     return str_repeat($pad_string, $diff) . $input;
                 } 
-                else if ($pad_typ === STR_PAD_BOTH) {
+                else if ($pad_type === STR_PAD_BOTH) {
                     $left = floor($diff / 2);
                     $right = $diff - $left;
                     return str_repeat($pad_string, $left) . $input . str_repeat($pad_string, $right);
