@@ -1,695 +1,772 @@
-Харківський національний університет радіоелектроніки
-Факультет комп’ютерних наук
-Катедра програмної інженерії
+﻿Міністерство освіти і науки України 
+Харківський національний університет радіоелектроніки 
 
-ЗВІТ
+
+Кафедра програмної інженерії
+ 
+
+
+Звіт
 з лабораторної роботи № 4
 з дисципліни «Скриптові мови програмування»
 
-Виконав
-ст. гр. ПЗПІ-23-3
-Горщарук Нікіта
 
-Перевірив
-ст. викладач катедри ПІ
-Сокорчук Ігор Петрович
+
+
+
+
+Виконав:                                                           	     Перевірив:
+ст. гр. ПЗПІ-23-3                                    	       	     ст. викл. Сокорчук І. П.
+Горщарук Н. С.
+
+
+
+
+
+
 
 Харків 2025
+1 ІСТОРІЯ ЗМІН
+№ДатаВерсія звітуОпис змін та виправлень110.05.20250.1Оформлено повністю текстовий звіт211.05.20250.2Частково оформлено звіт відповідно до вимог324.05.20250.3Остаточно оформлено звіт відповідно до вимог, додано відео
 
-Лабораторна робота №4
-  1 Умови задачі
-  - Розробити веб-додаток PHP, що реалізує інтернет-магазин із авторизацією користувача.
-  - Видалити дублювання коду шапки (header) та підвалу (footer) сайту через інклюди.
-  - Реалізувати сторінку авторизації з перевіркою логіна і пароля, без бази даних.
-  - Обмежити доступ до захищених сторінок для неавторизованих користувачів.
-  - Додати сторінку профілю з редагуванням особистих даних та завантаженням фото.
-  - Зберігати дані профілю у базу даних.
-  - Фото перевіряти на допустимий формат (jpeg, png, gif).
-  - Показувати повідомлення про помилки у формі, якщо дані невалідні.
+2 ЗАВДАННЯ
+     - Розробити веб-додаток PHP, що реалізує інтернет-магазин із авторизацією користувача.
+     - Видалити дублювання коду шапки (header) та підвалу (footer) сайту через інклюди.
+     - Реалізувати сторінку авторизації з перевіркою логіна і пароля, без бази даних.
+     - Обмежити доступ до захищених сторінок для неавторизованих користувачів.
+     - Додати сторінку профілю з редагуванням особистих даних та завантаженням фото.
+     - Зберігати дані профілю у базу даних.
+     - Фото перевіряти на допустимий формат (jpeg, png, gif).
+     - Показувати повідомлення про помилки у формі, якщо дані невалідні.
+     
 
-  2 Хід роботи
-  - Реалізовано головну сторінку (index.php), що підключає header, footer та вміст обраної сторінки.
-  - Винесено шапку і підвал сайту в окремі файли header.php і footer.php.
-  - Реалізовано маршрутизацію сторінок через параметр "page" в URL.
-  - Додано обмеження на доступ до сторінок сайту (products, cart, profile) лише після авторизації.
-  - Створено сторінку входу login.php з перевіркою логіна і пароля (з бази даних).
-  - Створено login_handler.php, що встановлює сесію після успішного входу або показує помилку.
-  - У header.php додано умову: показувати Login або Logout/Profile залежно від авторизації.
-  - Додано сторінку профілю (profile.php) з формою та завантаженням фото.
-  - Реалізовано скрипт profile_handler.php для обробки форми та збереження даних у файл.
-  - Додано перевірку валідності даних профілю (довжина, дата народження, опис >= 50 символів).
-  - Валідація та обробка фото з використанням move_uploaded_file.
-  - Розмітка форм оформлена через CSS, додано превʼю фото та збереження зображення.
-  - Дані товарів та профілів користувачів зберігаються у SQLite-базі через PDO. 
-  - Структура бази створюється динамічно під час запуску, запити виконуються через підготовлені інструкції.
+3 ОПИС ВИКОНАНОЇ РОБОТИ
+     - Реалізовано головну сторінку (index.php), що підключає header, footer та вміст обраної сторінки.
+     - Винесено шапку і підвал сайту в окремі файли header.php і footer.php.
+     - Реалізовано маршрутизацію сторінок через параметр "page" в URL.
+     - Додано обмеження на доступ до сторінок сайту (products, cart, profile) лише після авторизації.
+     - Створено сторінку входу login.php з перевіркою логіна і пароля (з бази даних).
+     - Створено login_handler.php, що встановлює сесію після успішного входу або показує помилку.
+     - У header.php додано умову: показувати Login або Logout/Profile залежно від авторизації.
+     - Додано сторінку профілю (profile.php) з формою та завантаженням фото.
+     - Реалізовано скрипт profile_handler.php для обробки форми та збереження даних у файл.
+     - Додано перевірку валідності даних профілю (довжина, дата народження, опис >= 50 символів).
+     - Валідація та обробка фото з використанням move_uploaded_file.
+     - Розмітка форм оформлена через CSS, додано превʼю фото та збереження зображення.
+     - Дані товарів та профілів користувачів зберігаються у SQLite-базі через PDO. 
+     - Структура бази створюється динамічно під час запуску, запити виконуються через підготовлені інструкції.
+     - Результати роботи подано у вигляді рисунків Б1-Б8.
 
-  Висновок:
-  - У результаті виконання лабораторної роботи було реалізовано інтернет-магазин із системою авторизації.
-  - Отримано навички розділення структури сайту на компоненти (header, footer).
-  - Реалізовано захист доступу до сторінок для неавторизованих користувачів.
-  - Створено функціонал реєстрації профілю з фото та перевіркою даних.
-  - Реалізоване рішення відповідає вимогам лабораторного завдання.
-  - Забезпечено зручність інтерфейсу та безпеку введення користувацьких даних.
+4 ВИСНОВКИ
+     - У результаті виконання лабораторної роботи було реалізовано інтернет-магазин із системою авторизації.
+     - Отримано навички розділення структури сайту на компоненти (header, footer).
+     - Реалізовано захист доступу до сторінок для неавторизованих користувачів.
+     - Створено функціонал реєстрації профілю з фото та перевіркою даних.
+     - Реалізоване рішення відповідає вимогам лабораторного завдання.
+     - Забезпечено зручність інтерфейсу та безпеку введення користувацьких даних.
 
-  ДОДАТОК А
-  index.php
-  <?php session_start(); ?>
-  
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Продовольчий магазин весна</title>
-      <link rel="stylesheet" href="assets/css/style.css">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    </head>
-    <body>
-      <div id="main-container">
-        <?php require_once 'includes/header.php'; ?>
-        <main>
-          <?php
-            $page = $_GET['page'] ?? 'home';
-            $publicPages = ['login'];
-            $contentFile = 'pages/' . $page . '.php';
-  
-            if (!file_exists($contentFile)) {
-              echo '<h1>Сторінку не знайдено!</h1>';
-            }
-            else {
-              if (!isset($_SESSION['user']) && !in_array($page, $publicPages)) {
-                $contentFile = 'pages/page404.php';
-              }
-              
-              include $contentFile;
-            }
-          ?>
-        </main>
-        <?php require_once 'includes/footer.php'; ?>
-      </div>
-    </body>
-  </html>
 
-  Додаток Б
-  Папка pages:
-  1) profile.php
-  <?php
-    require_once 'database/db.php';
-  
-    $errors = $_SESSION['profile_errors'] ?? [];
-    unset($_SESSION['profile_errors']);
-  
-    if (!isset($_SESSION['user'])) {
-      exit;
-    }
-  
-    $username = $_SESSION['user'];
-  
-    $stmt = $pdo->prepare("SELECT name, surname, dob, description, photo FROM Users WHERE username = :username");
-    $stmt->execute([':username' => $username]);
-    $data = $stmt->fetch(PDO::FETCH_ASSOC);
-  
-    if (!$data) {
-      $data = ['name'=>'', 'surname'=>'', 'dob'=>'', 'description'=>'', 'photo'=>''];
-    }
-  ?>
-  
-  <div class="profile-page">
-    <h1 class="profile-title">Профіль користувача</h1>
-  
-    <?php if ($errors): ?>
-      <div class="profile-errors">
-        <ul>
-          <?php foreach ($errors as $error): ?>
-            <li><?= htmlspecialchars($error) ?></li>
-          <?php endforeach; ?>
-        </ul>
-      </div>
-    <?php endif; ?>
-  
-    <form method="POST" action="includes/profile_handler.php" enctype="multipart/form-data" class="profile-form">
-      <div class="profile-column">
-        <label class="profile-label">Фото:</label>
-        <img id="photoPreview" src="<?= $data['photo'] ?>" alt="Profile Photo" class="profile-img">
-        <input type="file" id="photoInput" name="photo" class="profile-file"  style="display: none;" onchange="previewPhoto(this)">
-        <button type="button" class="profile-button" onclick="document.getElementById('photoInput').click();">
-          Завантажити
-        </button>
-      </div>
-  
-      <div class="profile-column">
-        <div class="profile-row-group">
-          <div>
-            <label class="profile-label">Ім'я:</label>
-            <input type="text" name="name" value="<?= htmlspecialchars($data['name']) ?>" class="profile-input">
-          </div>
-          <div>
-            <label class="profile-label">Прізвище:</label>
-            <input type="text" name="surname" value="<?= htmlspecialchars($data['surname']) ?>" class="profile-input">
-          </div>
-          <div>
-            <label class="profile-label">Дата народження:</label>
-            <input type="date" name="dob" value="<?= htmlspecialchars($data['dob']) ?>" class="profile-date">
-          </div>
-        </div>
-  
-        <label class="profile-label">Короткий опис:</label>
-        <textarea name="description" rows="8" class="profile-textarea"><?= htmlspecialchars($data['description']) ?></textarea>
-  
-        <br>
-        <button type="submit" class="profile-button">Зберегти</button>
-      </div>
-    </form>
-  </div>
-  
-  <script>
-    let oldBlobURL = null;
-  
-    function previewPhoto(input) {
-      const file = input.files[0];
-      if (!file) return;
-  
-      const img = document.getElementById('photoPreview');
-  
-      if (oldBlobURL) {
-        URL.revokeObjectURL(oldBlobURL);
-      }
-  
-      oldBlobURL = URL.createObjectURL(file);
-      img.src = oldBlobURL;
-    }
-  </script>
 
-  2) products.php
-  <h1>Каталог товарів</h1>
-  
-  <?php
-    require_once 'includes/products.php';
-  
-    $error = $_SESSION['error'] ?? '';
-  
-    unset($_SESSION['error']);
-  ?>
-  
-  <?php if ($error): ?>
-    <div class="error-message">
-      <?= htmlspecialchars($error) ?>
-    </div>
-  <?php endif; ?>
-  
-  <section>
-    <table class="product-table">
-      <thead>
-        <tr>
-          <th>Товар</th>
-          <th>Ціна</th>
-          <th>Кількість</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($products as $product): ?>
-        <tr>
-          <form method="POST" action="includes/actions.php?action=add" class="buy-form">
-            <td><?= htmlspecialchars($product['name']) ?></td>
-            <td><?= $product['price'] ?> грн</td>
-            <td>
-              <input type="hidden" name="addIdInput" value="<?= $product['id'] ?>">
-              <input type="number" name="addCountInput" value="1" class="quantity-input">
-            </td>
-            <td>
-              <input type="submit" value="Купити" class="buy-button">
-            </td>
-          </form>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-  </section>
 
-  3) page404.php
-  <h1>Please Login first</h1>
-  <div id="warning-page-container">
-    <p>Для перегляду контенту сайту необхідно пройти авторизацію.</p>
-    <a href="index.php?page=login">Перейти до форми входу</a>
-  </div>
 
-  4) login.php
-  <?php
-    $error = $_SESSION['login_error'] ?? '';
-    unset($_SESSION['login_error']);
-  ?>
-  
-  <div id="login-container">
-    <form method="POST" action="includes/login_handler.php" class="login-form">
-      <h1>Вхід</h1>
-  
-      <?php if ($error): ?>
-        <p class="error-message"><?= htmlspecialchars($error) ?></p>
-      <?php endif; ?>
-  
-      <label class="form-label">Ім’я користувача:
-        <input type="text" name="username" class="form-input">
-      </label>
-  
-      <label class="form-label">Пароль:
-        <input type="password" name="password" class="form-input">
-      </label>
-  
-      <button type="submit" class="login-button">Login</button>
-    </form>
-  </div>
 
-  5) home.php
-  <h1>Ласкаво просимо!</h1>
 
-  6) cart.php
-  <?php
-    require_once 'includes/products.php';
-    require_once 'includes/functions.php';
-    require_once 'database/db.php';
-  
-    $products = [];
-    $stmt = $pdo->query("SELECT id, name, price FROM Products");
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-      $products[$row['id']] = $row;
-    }
-  ?>
-  
-  <h1>Ваш кошик</h1>
-  
-  <?php if (empty($_SESSION['cart'])): ?>
-    <div id="empty-cart-container">
-      <p>Кошик порожній.</p>
-      <a href="index.php?page=products">Перейти до покупок</a>
-    </div>
-  <?php else: ?>
-    <section>
-      <article>
-        <table class="cart-table">
-          <thead>
-            <tr>
-              <th>Id</th>
-              <th>Назва</th>
-              <th>Ціна</th>
-              <th>Кількість</th>
-              <th>Сума</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php 
-            $total = 0;
-            foreach ($_SESSION['cart'] as $item): 
-              $product = $products[$item['id']] ?? null;
-              if (!$product) continue;
-              $sum = $product['price'] * $item['count'];
-              $total += $sum;
-            ?>
-            <tr>
-              <td><?= $product['id'] ?></td>
-              <td><?= htmlspecialchars($product['name']) ?></td>
-              <td><?= number_format($product['price'], 2) ?> грн</td>
-              <td><?= $item['count'] ?></td>
-              <td><?= number_format($sum, 2) ?> грн</td>
-              <td>
-                <a href="includes/actions.php?action=remove&id=<?= $item['id'] ?>" class="remove-btn">
-                  <i class="fas fa-trash"></i>
-                </a>
-              </td>
-            </tr>
-            <?php endforeach; ?>
-            <tr>
-              <td><strong>Всього</strong></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td><strong><?= number_format($total, 2) ?> грн</strong></td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-  
-        <div class="cart-actions">
-          <form method="POST" action="includes/actions.php?action=clearAll">
-            <button type="submit" class="clear-all-btn">Видалити все</button>
-          </form>
-          <button class="pay-btn">Оплатити</button>
-        </div>
-      </article>
-    </section>
-  <?php endif; ?>
 
-  7) about.php
-  <h1>Про нас</h1>
-  <section>
-    <article>
-      <p>Назва: Продовольчий магазин "Весна"</p>
-      <p>ПІБ: Горщарук Н. С.</p>
-      <p>Група: ПЗПІ-23-3</p>
-    </article>
-  </section>
+ДОДАТОК А
+Відеозапис
+     Відеозапис презентації результатів лабораторної роботи: https://youtu.be/WfEktk2GLT8
 
-  Додаток В
-  Папка includes:
-  1) profile_handler.php
-  <?php
-  session_start();
-  require_once __DIR__ . '/../database/db.php';
-  
-  if (!isset($_SESSION['user'])) {
-    exit;
-  }
-  
-  $username = $_SESSION['user'];
-  
-  $stmt = $pdo->prepare("SELECT * FROM Users WHERE username = :username");
-  $stmt->execute([':username' => $username]);
-  $user = $stmt->fetch(PDO::FETCH_ASSOC);
-  
-  if (!$user) {
-    die('Користувач не знайдений.');
-  }
-  
-  $errors = [];
-  
-  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim($_POST['name']);
-    $surname = trim($_POST['surname']);
-    $dob = $_POST['dob'];
-    $description = trim($_POST['description']);
-    $photo = $user['photo'];
-  
-    if (strlen($name) < 2) $errors[] = 'Ім\'я занадто коротке.';
-    if (strlen($surname) < 2) $errors[] = 'Прізвище занадто коротке.';
-    if ((date('Y') - date('Y', strtotime($dob))) < 16) $errors[] = 'Має бути не менше 16 років.';
-    if (strlen($description) < 50) $errors[] = 'Опис має бути не менше 50 символів.';
-  
-    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
-      $allowed = ['image/jpeg', 'image/png', 'image/gif'];
-      if (in_array($_FILES['photo']['type'], $allowed)) {
-        $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
-        $filename = '/data/uploads/profile_photo_' . $user['id'] . '.' . $ext;
-        move_uploaded_file($_FILES['photo']['tmp_name'], __DIR__ . '/..' . $filename);
-        $photo = $filename;
-      } else {
-        $errors[] = 'Недійсний формат фото.';
-      }
-    }
-  
-    if (empty($errors)) {
-      $stmt = $pdo->prepare("
-        UPDATE Users SET
-          name = :name,
-          surname = :surname,
-          dob = :dob,
-          description = :description,
-          photo = :photo
-        WHERE username = :username
-      ");
-      $stmt->execute([
-        ':name' => $name,
-        ':surname' => $surname,
-        ':dob' => $dob,
-        ':description' => $description,
-        ':photo' => $photo,
-        ':username' => $username
-      ]);
-  
-      header("Location: /index.php?page=profile");
-      exit;
-    } else {
-      $_SESSION['profile_errors'] = $errors;
-      header("Location: /index.php?page=profile");
-      exit;
-    }
-  }
+Хронологічний опис відеозапису:
+00:00 — Вступ та опис завдання.
+00:25 — Показ функціоналу сайту.
+03:00 — Пояснення про реалізацію сайта в коді починаючи з файлу index.php та додатково про окремий файл header.php.
+06:00 — Пояснення про файл login.php, login_handler.php та трішки про файл для створення бази даних.
+10:10 — Пояснення про можливість розлогінитися та про файл logout_handler.php.
+11:00 — Пояснення про файл profile.php, profile_handler.php та збереження інформації в базу даних.
+14:10 — Показ особливості встановлення фото профілю завдяки javascript.
 
-  2) products.php
-  <?php
-  require_once 'database/db.php';
-  
-  $products = [];
-  $stmt = $pdo->query("SELECT id, name, price FROM Products");
-  while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    $products[$row['id']] = $row;
-  }
 
-  3) logout_handler.php
-  <?php
-  session_start();
-  session_unset();
-  session_destroy();
-  header('Location: /index.php?page=login');
-  exit;
+ДОДАТОК Б
+Графічні матеріали
 
-  4) login_handler.php
-  <?php
-  if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-  }
-  
-  require_once __DIR__ . '/../database/db.php';
-  
-  if (!isset($_POST['username'], $_POST['password']) ||
-      empty(trim($_POST['username'])) || empty(trim($_POST['password']))) {
-    $_SESSION['login_error'] = 'Будь ласка, заповніть усі поля';
-    header('Location: /index.php?page=login');
-    exit;
-  }
-  
-  $username = trim($_POST['username']);
-  $password = $_POST['password'];
-  
-  $stmt = $pdo->prepare("SELECT * FROM Users WHERE username = :username");
-  $stmt->execute([':username' => $username]);
-  $user = $stmt->fetch(PDO::FETCH_ASSOC);
-  
-  if ($user && password_verify($password, $user['password'])) {
-    $_SESSION['user'] = $username;
-    $_SESSION['login_time'] = time();
-    header('Location: /index.php?page=products');
-    exit;
-  } else {
-    $_SESSION['login_error'] = 'Невірні логін або пароль';
-    header('Location: /index.php?page=login');
-    exit;
-  }
+Рисунок Б.1 — Головна сторінка (користувач не авторизований)
 
-  5) header.php
-  <header>
-    <nav class="header-nav">
-      <a href="index.php?page=home"><i class="fas fa-home"></i> Home</a> |
-      <a href="index.php?page=products"><i class="fas fa-bars"></i> Products</a> |
-      
-      <?php if (!isset($_SESSION['user'])): ?>
-        <a href="index.php?page=login"><i class="fas fa-sign-in-alt"></i> Login</a>
-      <?php else: ?>
-        <a href="index.php?page=cart"><i class="fas fa-shopping-cart"></i> Cart</a> |
-        <a href="index.php?page=profile"><i class="fas fa-user"></i> Profile</a> |
-        <a href="includes/logout_handler.php"><i class="fas fa-sign-out-alt"></i> Logout (<?= htmlspecialchars($_SESSION['user']) ?>)</a>
-      <?php endif; ?>
-    </nav>
-  </header>
 
-  6) functions.php
-  <?php
-  if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-  }
-  
-  function searchCartItem($id) {
-  	if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
-  
-  	foreach ($_SESSION['cart'] as $index => $item) {
-  		if ($item['id'] == $id) {
-  			return $index;
-  		}
-  	}
-  	return -1;
-  }
-  
-  function addCartItem($item) {
-  	$_SESSION['cart'][] = $item;
-  }
-  
-  function incrementCartItemCount($itemNum, $count) {
-  	$_SESSION['cart'][$itemNum]['count'] += $count;
-  }
+Рисунок Б.2 — Сторінка входу
 
-  7) footer.php
-  <footer>
-    <nav class="footer-nav">
-      <a href="index.php?page=home">Home</a> |
-      <a href="index.php?page=products">Products</a> |
-      <a href="index.php?page=cart">Cart</a> |
-      <a href="index.php?page=about">About Us</a>
-    </nav>
-  </footer>
 
-  8) actions.php
-  <?php
-  require_once 'functions.php';
-  
-  if (isset($_GET['action'])) {
-  	switch ($_GET['action']) {
-  		case 'add':
-  			doAdd();
-  			break;
-  		case 'remove':
-  			doRemove();
-  			break;
-  		case 'clearAll':
-  			doClearAll();
-  			break;
-  	}
-  }
-  
-  function doAdd() {
-  	if (isset($_POST['addIdInput'])) {
-  		$id = (int)$_POST['addIdInput'];
-  
-  		$addCount = isset($_POST['addCountInput']) && (int)$_POST['addCountInput'] > 0
-  			? (int)$_POST['addCountInput']
-  			: 1;
-  
-  		$itemNum = searchCartItem($id);
-  		$currentCount = 0;
-  
-  		if ($itemNum >= 0) {
-  			$currentCount = $_SESSION['cart'][$itemNum]['count'];
-  		}
-  
-  		validateQuantity($id, $addCount, $currentCount);
-  
-  		if ($itemNum < 0) {
-  			$item = ['id' => $id, 'count' => $addCount];
-  			addCartItem($item);
-  		} else {
-  			incrementCartItemCount($itemNum, $addCount);
-  		}
-  	}
-  
-  	header('Location: /index.php?page=cart');
-  	exit;
-  }
-  
-  function doRemove() {
-  	if (isset($_GET['id'])) {
-  		$id = (int)$_GET['id'];
-  		$itemNum = searchCartItem($id);
-  
-  		if ($itemNum >= 0) {
-  			unset($_SESSION['cart'][$itemNum]);
-  			$_SESSION['cart'] = array_values($_SESSION['cart']);
-  		}
-  	}
-  
-  	header('Location: /index.php?page=cart');
-  	exit;
-  }
-  
-  function doClearAll() {
-  	unset($_SESSION['cart']);
-  
-    header('Location: /index.php?page=cart');
-  	exit;
-  }
-  
-  function validateQuantity($id, $addCount, $currentCount) {
-  	$newTotalCount = $currentCount + $addCount;
-  
-  	$errors = [];
-  
-  	if ($addCount < 1) {
-  		$errors[] = "Мінімальна кількість — 1.";
-  	}
-  
-  	if ($newTotalCount > 99) {
-  		$errors[] = "Не можна додати більше 99 одиниць товару (зараз: $currentCount).";
-  	}
-  
-  	if (!empty($errors)) {
-  		$_SESSION['error'] = implode(' ', $errors);
-  		header('Location: /index.php?page=products');
-  		exit;
-  	}
-  }
+Рисунок Б.3 — Попередження про необхідність заповнення полів
 
-  Додаток Г
-  Папка database:
-  db.php
-  <?php
-  $dbFile = __DIR__ . '/../data/shop.sqlite';
-  
-  $dataDir = dirname($dbFile);
-  if (!is_dir($dataDir)) {
-    mkdir($dataDir, 0777, true);
-  }
-  
-  $uploadsDir = $dataDir . '/uploads';
-  if (!is_dir($uploadsDir)) {
-    mkdir($uploadsDir, 0777, true);
-  }
-  
-  $initDb = !file_exists($dbFile);
-  
-  try {
-    $pdo = new PDO("sqlite:$dbFile");
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-  
-    if ($initDb) {
-      $pdo->exec("
-        CREATE TABLE IF NOT EXISTS Products (
-          id INTEGER PRIMARY KEY,
-          name TEXT NOT NULL,
-          price REAL NOT NULL CHECK(price >= 0)
-        );
-        
-        CREATE TABLE IF NOT EXISTS Users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT,
-          surname TEXT,
-          dob TEXT,
-          description TEXT,
-          photo TEXT,
-          username TEXT UNIQUE NOT NULL,
-          password TEXT NOT NULL
-        );
-      ");
-  
-      $products = [
-        ['id' => 1, "name" => "Молоко пастеризоване", "price" => 12],
-        ['id' => 2, "name" => "Хліб чорний", "price" => 9],
-        ['id' => 3, "name" => "Сир білий", "price" => 21],
-        ['id' => 4, "name" => "Сметана 20%", "price" => 25],
-        ['id' => 5, "name" => "Кефір 1%", "price" => 19],
-        ['id' => 6, "name" => "Вода газована", "price" => 18],
-        ['id' => 7, "name" => "Печиво \"Весна\"", "price" => 14]
-      ];
-  
-      $stmt = $pdo->prepare("INSERT OR IGNORE INTO Products (id, name, price) VALUES (:id, :name, :price)");
-      foreach ($products as $p) {
-        $stmt->execute([
-          ':id' => $p['id'],
-          ':name' => $p['name'],
-          ':price' => $p['price']
-        ]);
-      }
-  
-      $pdo->prepare("
-        INSERT INTO Users (name, surname, dob, description, photo, username, password)
-        VALUES (:name, :surname, :dob, :description, :photo, :username, :password)
-      ")->execute([
-        ':name' => '',
-        ':surname' => '',
-        ':dob' => '',
-        ':description' => '',
-        ':photo' => '',
-        ':username' => 'Test',
-        ':password' => password_hash('123123', PASSWORD_DEFAULT)
-      ]);
-    }
-  
-  } catch (PDOException $e) {
-    die("Помилка підключення: " . $e->getMessage());
-  }
+
+Рисунок Б.4 — Попередження про неправильний ввід
+
+
+Рисунок Б.5 — При успішній авторизації потрапляємо в каталог товарів
+
+
+Рисунок Б.6 — Профіль користувача
+
+
+Рисунок Б.7 — При натискані на зберегти (поля не заповнені або заповнені неправильно)
+
+
+Рисунок Б.8 — При натискані на зберегти (поля заповнені правильно)
+
+
+ДОДАТОК В
+Програмний код
+   В.1 Файл index.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/index.php
+      1 <?php session_start(); ?>
+      2
+      3 <!DOCTYPE html>
+      4 <html>
+      5   <head>
+      6     <meta charset="UTF-8">
+      7     <title>Продовольчий магазин весна</title>
+      8     <link rel="stylesheet" href="assets/css/style.css">
+      9     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+     10   </head>
+     11   <body>
+     12     <div id="main-container">
+     13       <?php require_once 'includes/header.php'; ?>
+     14       <main>
+     15         <?php
+     16           $page = $_GET['page'] ?? 'home';
+     17           $publicPages = ['login'];
+     18           $contentFile = 'pages/' . $page . '.php';
+     19
+     20           if (!file_exists($contentFile)) {
+     21             echo '<h1>Сторінку не знайдено!</h1>';
+     22           }
+     23           else {
+     24             if (!isset($_SESSION['user']) && !in_array($page, $publicPages)) {
+     25               $contentFile = 'pages/page404.php';
+     26             }
+     27
+     28             include $contentFile;
+     29           }
+     30         ?>
+     31       </main>
+     32       <?php require_once 'includes/footer.php'; ?>
+     33     </div>
+     34   </body>
+     35 </html>
+
+   В.2 Файл profile.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/pages/profile.php
+      1 <?php
+      2   require_once 'database/db.php';
+      3
+      4   $errors = $_SESSION['profile_errors'] ?? [];
+      5   unset($_SESSION['profile_errors']);
+      6
+      7   if (!isset($_SESSION['user'])) {
+      8     exit;
+      9   }
+     10
+     11   $username = $_SESSION['user'];
+     12
+     13   $stmt = $pdo->prepare("SELECT name, surname, dob, description, photo FROM Users WHERE username = :username");
+     14   $stmt->execute([':username' => $username]);
+     15   $data = $stmt->fetch(PDO::FETCH_ASSOC);
+     16
+     17   if (!$data) {
+     18     $data = ['name'=>'', 'surname'=>'', 'dob'=>'', 'description'=>'', 'photo'=>''];
+     19   }
+     20 ?>
+     21
+     22 <div class="profile-page">
+     23   <h1 class="profile-title">Профіль користувача</h1>
+     24
+     25   <?php if ($errors): ?>
+     26     <div class="profile-errors">
+     27       <ul>
+     28         <?php foreach ($errors as $error): ?>
+     29           <li><?= htmlspecialchars($error) ?></li>
+     30         <?php endforeach; ?>
+     31       </ul>
+     32     </div>
+     33   <?php endif; ?>
+     34
+     35   <form method="POST" action="includes/profile_handler.php" enctype="multipart/form-data" class="profile-form">
+     36     <div class="profile-column">
+     37       <label class="profile-label">Фото:</label>
+     38       <img id="photoPreview" src="<?= $data['photo'] ?>" alt="Profile Photo" class="profile-img">
+     39       <input type="file" id="photoInput" name="photo" class="profile-file"  style="display: none;" onchange="previewPhoto(this)">
+     40       <button type="button" class="profile-button" onclick="document.getElementById('photoInput').click();">
+     41         Завантажити
+     42       </button>
+     43     </div>
+     44
+     45     <div class="profile-column">
+     46       <div class="profile-row-group">
+     47         <div>
+     48           <label class="profile-label">Ім'я:</label>
+     49           <input type="text" name="name" value="<?= htmlspecialchars($data['name']) ?>" class="profile-input">
+     50         </div>
+     51         <div>
+     52           <label class="profile-label">Прізвище:</label>
+     53           <input type="text" name="surname" value="<?= htmlspecialchars($data['surname']) ?>" class="profile-input">
+     54         </div>
+     55         <div>
+     56           <label class="profile-label">Дата народження:</label>
+     57           <input type="date" name="dob" value="<?= htmlspecialchars($data['dob']) ?>" class="profile-date">
+     58         </div>
+     59       </div>
+     60
+     61       <label class="profile-label">Короткий опис:</label>
+     62       <textarea name="description" rows="8" class="profile-textarea"><?= htmlspecialchars($data['description']) ?></textarea>
+     63
+     64       <br>
+     65       <button type="submit" class="profile-button">Зберегти</button>
+     66     </div>
+     67   </form>
+     68 </div>
+     69
+     70 <script>
+     71   let oldBlobURL = null;
+     72
+     73   function previewPhoto(input) {
+     74     const file = input.files[0];
+     75     if (!file) return;
+     76
+     77     const img = document.getElementById('photoPreview');
+     78
+     79     if (oldBlobURL) {
+     80       URL.revokeObjectURL(oldBlobURL);
+     81     }
+     82
+     83     oldBlobURL = URL.createObjectURL(file);
+     84     img.src = oldBlobURL;
+     85   }
+     86 </script>
+
+   В.3 Файл products.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/pages/products.php
+      1 <h1>Каталог товарів</h1>
+      2
+      3 <?php
+      4   require_once 'includes/products.php';
+      5
+      6   $error = $_SESSION['error'] ?? '';
+      7
+      8   unset($_SESSION['error']);
+      9 ?>
+     10
+     11 <?php if ($error): ?>
+     12   <div class="error-message">
+     13     <?= htmlspecialchars($error) ?>
+     14   </div>
+     15 <?php endif; ?>
+     16
+     17 <section>
+     18   <table class="product-table">
+     19     <thead>
+     20       <tr>
+     21         <th>Товар</th>
+     22         <th>Ціна</th>
+     23         <th>Кількість</th>
+     24         <th></th>
+     25       </tr>
+     26     </thead>
+     27     <tbody>
+     28       <?php foreach ($products as $product): ?>
+     29       <tr>
+     30         <form method="POST" action="includes/actions.php?action=add" class="buy-form">
+     31           <td><?= htmlspecialchars($product['name']) ?></td>
+     32           <td><?= $product['price'] ?> грн</td>
+     33           <td>
+     34             <input type="hidden" name="addIdInput" value="<?= $product['id'] ?>">
+     35             <input type="number" name="addCountInput" value="1" class="quantity-input">
+     36           </td>
+     37           <td>
+     38             <input type="submit" value="Купити" class="buy-button">
+     39           </td>
+     40         </form>
+     41       </tr>
+     42       <?php endforeach; ?>
+     43     </tbody>
+     44   </table>
+     45 </section>
+
+   В.4 Файл page404.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/pages/page404.php
+      1 <h1>Please Login first</h1>
+      2 <div id="warning-page-container">
+      3   <p>Для перегляду контенту сайту необхідно пройти авторизацію.</p>
+      4   <a href="index.php?page=login">Перейти до форми входу</a>
+      5 </div>
+
+   В.5 Файл login.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/pages/login.php
+      1 <?php
+      2   $error = $_SESSION['login_error'] ?? '';
+      3   unset($_SESSION['login_error']);
+      4 ?>
+      5
+      6 <div id="login-container">
+      7   <form method="POST" action="includes/login_handler.php" class="login-form">
+      8     <h1>Вхід</h1>
+      9
+     10     <?php if ($error): ?>
+     11       <p class="error-message"><?= htmlspecialchars($error) ?></p>
+     12     <?php endif; ?>
+     13
+     14     <label class="form-label">Ім’я користувача:
+     15       <input type="text" name="username" class="form-input">
+     16     </label>
+     17
+     18     <label class="form-label">Пароль:
+     19       <input type="password" name="password" class="form-input">
+     20     </label>
+     21
+     22     <button type="submit" class="login-button">Login</button>
+     23   </form>
+     24 </div>
+   
+   В.6 Файл home.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/pages/home.php
+      1 <h1>Ласкаво просимо!</h1>
+   
+   В.7 Файл cart.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/pages/cart.php
+      1 <?php
+      2   require_once 'includes/products.php';
+      3   require_once 'includes/functions.php';
+      4   require_once 'database/db.php';
+      5
+      6   $products = [];
+      7   $stmt = $pdo->query("SELECT id, name, price FROM Products");
+      8   while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+      9     $products[$row['id']] = $row;
+     10   }
+     11 ?>
+     12
+     13 <h1>Ваш кошик</h1>
+     14
+     15 <?php if (empty($_SESSION['cart'])): ?>
+     16   <div id="empty-cart-container">
+     17     <p>Кошик порожній.</p>
+     18     <a href="index.php?page=products">Перейти до покупок</a>
+     19   </div>
+     20 <?php else: ?>
+     21   <section>
+     22     <article>
+     23       <table class="cart-table">
+     24         <thead>
+     25           <tr>
+     26             <th>Id</th>
+     27             <th>Назва</th>
+     28             <th>Ціна</th>
+     29             <th>Кількість</th>
+     30             <th>Сума</th>
+     31             <th></th>
+     32           </tr>
+     33         </thead>
+     34         <tbody>
+     35           <?php
+     36           $total = 0;
+     37           foreach ($_SESSION['cart'] as $item):
+     38             $product = $products[$item['id']] ?? null;
+     39             if (!$product) continue;
+     40             $sum = $product['price'] * $item['count'];
+     41             $total += $sum;
+     42           ?>
+     43           <tr>
+     44             <td><?= $product['id'] ?></td>
+     45             <td><?= htmlspecialchars($product['name']) ?></td>
+     46             <td><?= number_format($product['price'], 2) ?> грн</td>
+     47             <td><?= $item['count'] ?></td>
+     48             <td><?= number_format($sum, 2) ?> грн</td>
+     49             <td>
+     50               <a href="includes/actions.php?action=remove&id=<?= $item['id'] ?>" class="remove-btn">
+     51                 <i class="fas fa-trash"></i>
+     52               </a>
+     53             </td>
+     54           </tr>
+     55           <?php endforeach; ?>
+     56           <tr>
+     57             <td><strong>Всього</strong></td>
+     58             <td></td>
+     59             <td></td>
+     60             <td></td>
+     61             <td><strong><?= number_format($total, 2) ?> грн</strong></td>
+     62             <td></td>
+     63           </tr>
+     64         </tbody>
+     65       </table>
+     66
+     67       <div class="cart-actions">
+     68         <form method="POST" action="includes/actions.php?action=clearAll">
+     69           <button type="submit" class="clear-all-btn">Видалити все</button>
+     70         </form>
+     71         <button class="pay-btn">Оплатити</button>
+     72       </div>
+     73     </article>
+     74   </section>
+     75 <?php endif; ?>
+   
+   В.8 Файл about.php
+   GitHub репозиторій: !https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab3/smp-pzpi-23-3-horshcharuk-nikita-lab3/includes/products.php
+      1 <h1>Про нас</h1>
+      2 <section>
+      3   <article>
+      4     <p>Назва: Продовольчий магазин "Весна"</p>
+      5     <p>ПІБ: Горщарук Н. С.</p>
+      6     <p>Група: ПЗПІ-23-3</p>
+      7   </article>
+      8 </section>
+   
+   В.9 Файл profile_handler.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/includes/profile_handler.php
+      1 <?php
+      2 session_start();
+      3 require_once __DIR__ . '/../database/db.php';
+      4
+      5 if (!isset($_SESSION['user'])) {
+      6   exit;
+      7 }
+      8
+      9 $username = $_SESSION['user'];
+     10
+     11 $stmt = $pdo->prepare("SELECT * FROM Users WHERE username = :username");
+     12 $stmt->execute([':username' => $username]);
+     13 $user = $stmt->fetch(PDO::FETCH_ASSOC);
+     14
+     15 if (!$user) {
+     16   die('Користувач не знайдений.');
+     17 }
+     18
+     19 $errors = [];
+     20
+     21 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+     22   $name = trim($_POST['name']);
+     23   $surname = trim($_POST['surname']);
+     24   $dob = $_POST['dob'];
+     25   $description = trim($_POST['description']);
+     26   $photo = $user['photo'];
+     27
+     28   if (strlen($name) < 2) $errors[] = 'Ім\'я занадто коротке.';
+     29   if (strlen($surname) < 2) $errors[] = 'Прізвище занадто коротке.';
+     30   if ((date('Y') - date('Y', strtotime($dob))) < 16) $errors[] = 'Має бути не менше 16 років.';
+     31   if (strlen($description) < 50) $errors[] = 'Опис має бути не менше 50 символів.';
+     32
+     33   if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+     34     $allowed = ['image/jpeg', 'image/png', 'image/gif'];
+     35     if (in_array($_FILES['photo']['type'], $allowed)) {
+     36       $ext = pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION);
+     37       $filename = '/data/uploads/profile_photo_' . $user['id'] . '.' . $ext;
+     38       move_uploaded_file($_FILES['photo']['tmp_name'], __DIR__ . '/..' . $filename);
+     39       $photo = $filename;
+     40     } else {
+     41       $errors[] = 'Недійсний формат фото.';
+     42     }
+     43   }
+     44
+     45   if (empty($errors)) {
+     46     $stmt = $pdo->prepare("
+     47       UPDATE Users SET
+     48         name = :name,
+     49         surname = :surname,
+     50         dob = :dob,
+     51         description = :description,
+     52         photo = :photo
+     53       WHERE username = :username
+     54     ");
+     55     $stmt->execute([
+     56       ':name' => $name,
+     57       ':surname' => $surname,
+     58       ':dob' => $dob,
+     59       ':description' => $description,
+     60       ':photo' => $photo,
+     61       ':username' => $username
+     62     ]);
+     63
+     64     header("Location: /index.php?page=profile");
+     65     exit;
+     66   } else {
+     67     $_SESSION['profile_errors'] = $errors;
+     68     header("Location: /index.php?page=profile");
+     69     exit;
+     70   }
+     71 }
+   
+   В.10 Файл products.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/includes/products.php
+      1 <?php
+      2 require_once 'database/db.php';
+      3
+      4 $products = [];
+      5 $stmt = $pdo->query("SELECT id, name, price FROM Products");
+      6 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+      7   $products[$row['id']] = $row;
+      8 }
+    
+   В.11 Файл logout_handler.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/includes/logout_handler.php
+      1 <?php
+      2 session_start();
+      3 session_unset();
+      4 session_destroy();
+      5 header('Location: /index.php?page=login');
+      6 exit;
+   
+   В.12 Файл login_handler.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/includes/login_handler.php
+      1 <?php
+      2 if (session_status() === PHP_SESSION_NONE) {
+      3   session_start();
+      4 }
+      5
+      6 require_once __DIR__ . '/../database/db.php';
+      7
+      8 if (!isset($_POST['username'], $_POST['password']) ||
+      9     empty(trim($_POST['username'])) || empty(trim($_POST['password']))) {
+     10   $_SESSION['login_error'] = 'Будь ласка, заповніть усі поля';
+     11   header('Location: /index.php?page=login');
+     12   exit;
+     13 }
+     14
+     15 $username = trim($_POST['username']);
+     16 $password = $_POST['password'];
+     17
+     18 $stmt = $pdo->prepare("SELECT * FROM Users WHERE username = :username");
+     19 $stmt->execute([':username' => $username]);
+     20 $user = $stmt->fetch(PDO::FETCH_ASSOC);
+     21
+     22 if ($user && password_verify($password, $user['password'])) {
+     23   $_SESSION['user'] = $username;
+     24   $_SESSION['login_time'] = time();
+     25   header('Location: /index.php?page=products');
+     26   exit;
+     27 } else {
+     28   $_SESSION['login_error'] = 'Невірні логін або пароль';
+     29   header('Location: /index.php?page=login');
+     30   exit;
+     31 }
+   
+   В.13 Файл header.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/includes/header.php
+      1 <header>
+      2   <nav class="header-nav">
+      3     <a href="index.php?page=home"><i class="fas fa-home"></i> Home</a> |
+      4     <a href="index.php?page=products"><i class="fas fa-bars"></i> Products</a> |
+      5
+      6     <?php if (!isset($_SESSION['user'])): ?>
+      7       <a href="index.php?page=login"><i class="fas fa-sign-in-alt"></i> Login</a>
+      8     <?php else: ?>
+      9       <a href="index.php?page=cart"><i class="fas fa-shopping-cart"></i> Cart</a> |
+     10       <a href="index.php?page=profile"><i class="fas fa-user"></i> Profile</a> |
+     11       <a href="includes/logout_handler.php"><i class="fas fa-sign-out-alt"></i> Logout (<?= htmlspecialchars($_SESSION['user']) ?>)</a>
+     12     <?php endif; ?>
+     13   </nav>
+     14 </header>
+   
+   В.14 Файл functions.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/includes/functions.php
+      1 <?php
+      2 if (session_status() === PHP_SESSION_NONE) {
+      3   session_start();
+      4 }
+      5
+      6 function searchCartItem($id) {
+      7     if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
+      8
+      9     foreach ($_SESSION['cart'] as $index => $item) {
+     10             if ($item['id'] == $id) {
+     11                     return $index;
+     12             }
+     13     }
+     14     return -1;
+     15 }
+     16
+     17 function addCartItem($item) {
+     18     $_SESSION['cart'][] = $item;
+     19 }
+     20
+     21 function incrementCartItemCount($itemNum, $count) {
+     22     $_SESSION['cart'][$itemNum]['count'] += $count;
+     23 }
+   
+   В.15 Файл footer.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/includes/footer.php
+      1 <footer>
+      2   <nav class="footer-nav">
+      3     <a href="index.php?page=home">Home</a> |
+      4     <a href="index.php?page=products">Products</a> |
+      5     <a href="index.php?page=cart">Cart</a> |
+      6     <a href="index.php?page=about">About Us</a>
+      7   </nav>
+      8 </footer>
+   
+   В.16 Файл actions.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/includes/actions.php
+      1 <?php
+      2 require_once 'functions.php';
+      3
+      4 if (isset($_GET['action'])) {
+      5     switch ($_GET['action']) {
+      6             case 'add':
+      7                     doAdd();
+      8                     break;
+      9             case 'remove':
+     10                     doRemove();
+     11                     break;
+     12             case 'clearAll':
+     13                     doClearAll();
+     14                     break;
+     15     }
+     16 }
+     17
+     18 function doAdd() {
+     19     if (isset($_POST['addIdInput'])) {
+     20             $id = (int)$_POST['addIdInput'];
+     21
+     22             $addCount = isset($_POST['addCountInput']) && (int)$_POST['addCountInput'] > 0
+     23                     ? (int)$_POST['addCountInput']
+     24                     : 1;
+     25
+     26             $itemNum = searchCartItem($id);
+     27             $currentCount = 0;
+     28
+     29             if ($itemNum >= 0) {
+     30                     $currentCount = $_SESSION['cart'][$itemNum]['count'];
+     31             }
+     32
+     33             validateQuantity($id, $addCount, $currentCount);
+     34
+     35             if ($itemNum < 0) {
+     36                     $item = ['id' => $id, 'count' => $addCount];
+     37                     addCartItem($item);
+     38             } else {
+     39                     incrementCartItemCount($itemNum, $addCount);
+     40             }
+     41     }
+     42
+     43     header('Location: /index.php?page=cart');
+     44     exit;
+     45 }
+     46
+     47 function doRemove() {
+     48     if (isset($_GET['id'])) {
+     49             $id = (int)$_GET['id'];
+     50             $itemNum = searchCartItem($id);
+     51
+     52             if ($itemNum >= 0) {
+     53                     unset($_SESSION['cart'][$itemNum]);
+     54                     $_SESSION['cart'] = array_values($_SESSION['cart']);
+     55             }
+     56     }
+     57
+     58     header('Location: /index.php?page=cart');
+     59     exit;
+     60 }
+     61
+     62 function doClearAll() {
+     63     unset($_SESSION['cart']);
+     64
+     65   header('Location: /index.php?page=cart');
+     66     exit;
+     67 }
+     68
+     69 function validateQuantity($id, $addCount, $currentCount) {
+     70     $newTotalCount = $currentCount + $addCount;
+     71
+     72     $errors = [];
+     73
+     74     if ($addCount < 1) {
+     75             $errors[] = "Мінімальна кількість — 1.";
+     76     }
+     77
+     78     if ($newTotalCount > 99) {
+     79             $errors[] = "Не можна додати більше 99 одиниць товару (зараз: $currentCount).";
+     80     }
+     81
+     82     if (!empty($errors)) {
+     83             $_SESSION['error'] = implode(' ', $errors);
+     84             header('Location: /index.php?page=products');
+     85             exit;
+     86     }
+     87 }
+    
+   В.17 Файл db.php
+   GitHub репозиторій: https://github.com/NureHorshcharukNikita/smp-pzpi-23-3-horshcharuk-nikita/blob/main/Lab4/smp-pzpi-23-3-horshcharuk-nikita-lab4/database/db.php
+      1 <?php
+      2 $dbFile = __DIR__ . '/../data/shop.sqlite';
+      3
+      4 $dataDir = dirname($dbFile);
+      5 if (!is_dir($dataDir)) {
+      6   mkdir($dataDir, 0777, true);
+      7 }
+      8
+      9 $uploadsDir = $dataDir . '/uploads';
+     10 if (!is_dir($uploadsDir)) {
+     11   mkdir($uploadsDir, 0777, true);
+     12 }
+     13
+     14 $initDb = !file_exists($dbFile);
+     15
+     16 try {
+     17   $pdo = new PDO("sqlite:$dbFile");
+     18   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+     19
+     20   if ($initDb) {
+     21     $pdo->exec("
+     22       CREATE TABLE IF NOT EXISTS Products (
+     23         id INTEGER PRIMARY KEY,
+     24         name TEXT NOT NULL,
+     25         price REAL NOT NULL CHECK(price >= 0)
+     26       );
+     27
+     28       CREATE TABLE IF NOT EXISTS Users (
+     29         id INTEGER PRIMARY KEY AUTOINCREMENT,
+     30         name TEXT,
+     31         surname TEXT,
+     32         dob TEXT,
+     33         description TEXT,
+     34         photo TEXT,
+     35         username TEXT UNIQUE NOT NULL,
+     36         password TEXT NOT NULL
+     37       );
+     38     ");
+     39
+     40     $products = [
+     41       ['id' => 1, "name" => "Молоко пастеризоване", "price" => 12],
+     42       ['id' => 2, "name" => "Хліб чорний", "price" => 9],
+     43       ['id' => 3, "name" => "Сир білий", "price" => 21],
+     44       ['id' => 4, "name" => "Сметана 20%", "price" => 25],
+     45       ['id' => 5, "name" => "Кефір 1%", "price" => 19],
+     46       ['id' => 6, "name" => "Вода газована", "price" => 18],
+     47       ['id' => 7, "name" => "Печиво \"Весна\"", "price" => 14]
+     48     ];
+     49
+     50     $stmt = $pdo->prepare("INSERT OR IGNORE INTO Products (id, name, price) VALUES (:id, :name, :price)");
+     51     foreach ($products as $p) {
+     52       $stmt->execute([
+     53         ':id' => $p['id'],
+     54         ':name' => $p['name'],
+     55         ':price' => $p['price']
+     56       ]);
+     57     }
+     58
+     59     $pdo->prepare("
+     60       INSERT INTO Users (name, surname, dob, description, photo, username, password)
+     61       VALUES (:name, :surname, :dob, :description, :photo, :username, :password)
+     62     ")->execute([
+     63       ':name' => '',
+     64       ':surname' => '',
+     65       ':dob' => '',
+     66       ':description' => '',
+     67       ':photo' => '',
+     68       ':username' => 'Test',
+     69       ':password' => password_hash('123123', PASSWORD_DEFAULT)
+     70     ]);
+     71   }
+     72
+     73 } catch (PDOException $e) {
+     74   die("Помилка підключення: " . $e->getMessage());
+     75 }
+2
+
+
